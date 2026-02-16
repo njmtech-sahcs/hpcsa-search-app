@@ -153,10 +153,26 @@ export default function Home() {
 
     // Active sheet
     const activeWorksheet = XLSX.utils.json_to_sheet(activeFinalData);
+    // Make headers bold
+    const activeRange = XLSX.utils.decode_range(activeWorksheet["!ref"] || "A1");
+    for (let col = activeRange.s.c; col <= activeRange.e.c; col++) {
+      const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
+      if (activeWorksheet[cellAddress]) {
+        activeWorksheet[cellAddress].s = { font: { bold: true } };
+      }
+    }
     XLSX.utils.book_append_sheet(workbook, activeWorksheet, "Active");
 
     // Not Found sheet
     const notFoundWorksheet = XLSX.utils.json_to_sheet(notFoundFinalData);
+    // Make headers bold
+    const notFoundRange = XLSX.utils.decode_range(notFoundWorksheet["!ref"] || "A1");
+    for (let col = notFoundRange.s.c; col <= notFoundRange.e.c; col++) {
+      const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
+      if (notFoundWorksheet[cellAddress]) {
+        notFoundWorksheet[cellAddress].s = { font: { bold: true } };
+      }
+    }
     XLSX.utils.book_append_sheet(workbook, notFoundWorksheet, "Not Found");
 
     // Generate filename with timestamp
@@ -164,7 +180,7 @@ export default function Home() {
     const filename = `HPCSA_Results_${timestamp}.xlsx`;
 
     // Download file
-    XLSX.writeFile(workbook, filename);
+    XLSX.writeFile(workbook, filename, { cellStyles: true });
   };
 
   const handleSearch = async (e: React.FormEvent) => {
