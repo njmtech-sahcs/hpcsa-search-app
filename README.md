@@ -1,36 +1,182 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🔍 HPCSA Registration Search
 
-## Getting Started
+> **Verify healthcare practitioner registrations with the Health Professions Council of South Africa (HPCSA) — instantly and at scale.**
 
-First, run the development server:
+A powerful Next.js application designed to streamline the verification of healthcare practitioner registrations. Whether you need to check a single registration number or validate hundreds from an Excel spreadsheet, this tool automates the search process and delivers clear, actionable results.
+
+---
+
+## ✨ Features
+
+### 🎯 Single Registration Search
+- Quick lookup by registration number (e.g., `MP0518891`)
+- Real-time status verification (Active/Inactive)
+- Displays practitioner details including name and location
+
+### 📊 Batch Processing
+- **Upload Excel files** with registration lists
+- **Automated batch verification** with configurable concurrency
+- **Progress tracking** during processing
+- **Smart categorization**: Active, Inactive, and Not Found
+- **Export results** to formatted Excel with summary sheets
+
+### 🛠 Built With
+
+| Technology | Purpose |
+|------------|---------|
+| **Next.js 16** | React framework with App Router |
+| **TypeScript** | Type-safe development |
+| **Playwright** | Browser automation for HPCSA searches |
+| **shadcn/ui** | Beautiful, accessible UI components |
+| **Tailwind CSS v4** | Modern styling |
+| **react-dropzone** | Drag-and-drop file uploads |
+| **Zod** | Runtime type validation |
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js 20+
+- npm, yarn, pnpm, or bun
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/njmtech/hpcsa-search.git
+cd hpcsa-search
+
+# Install dependencies
+npm install
+```
+
+### Configuration
+
+```bash
+# Copy the example environment file
+cp .env.example .env
+
+# Edit .env with your configuration (defaults work for most cases)
+```
+
+### Run Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to start verifying registrations.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📖 How to Use
 
-## Learn More
+### Single Search
+1. Navigate to the **Single Search** tab
+2. Enter a registration number (e.g., `MP0518891`)
+3. Click **Search**
+4. View results with status, name, and location
 
-To learn more about Next.js, take a look at the following resources:
+### Batch Upload
+1. Prepare an Excel file with a **"Registration"** column
+2. Navigate to the **Batch Upload** tab
+3. Drag & drop or click to upload your file
+4. Watch the progress as registrations are verified
+5. Review the summary dashboard
+6. **Export results** to Excel with one click
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🏗 Project Structure
 
-## Deploy on Vercel
+```
+src/
+├── app/
+│   ├── api/
+│   │   ├── search/          # Single registration search endpoint
+│   │   └── batch-search/    # Batch processing endpoint
+│   ├── page.tsx             # Main UI component
+│   └── layout.tsx           # App layout
+├── components/
+│   └── ui/                  # shadcn/ui components
+└── lib/                     # Utility functions
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## ⚙️ Configuration Options
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `HPCSA_API_URL` | (required) | HPCSA online reporting endpoint |
+| `BATCH_SIZE` | 20 | Registrations per batch |
+| `MAX_CONCURRENT_REQUESTS` | 10 | Parallel API requests |
+| `REQUEST_DELAY_MS` | 100 | Delay between batches |
+| `REQUEST_TIMEOUT_MS` | 10000 | Request timeout (ms) |
+| `MAX_RETRIES` | 3 | Retry attempts for failures |
+| `PLAYWRIGHT_TIMEOUT` | 30000 | Browser automation timeout (ms) |
+
+---
+
+## 📦 Available Scripts
+
+```bash
+npm run dev      # Start development server (Turbo mode)
+npm run build    # Build for production
+npm run start    # Start production server
+npm run lint     # Run ESLint
+```
+
+---
+
+## 🎨 UI Components
+
+Built with [shadcn/ui](https://ui.shadcn.com) — a collection of reusable, accessible components:
+
+- Cards, Tables, Badges
+- Progress indicators
+- Drag-and-drop zones
+- Tabs for navigation
+- Toast notifications
+
+---
+
+## 📝 Example Excel Format
+
+For batch uploads, structure your Excel file with a column named **"Registration"**:
+
+| Registration |
+|--------------|
+| MP0518891    |
+| DR1234567    |
+| ...          |
+
+---
+
+## 🚀 Deployment
+
+Deploy on [Vercel](https://vercel.com) for optimal performance:
+
+```bash
+vercel deploy
+```
+
+Or deploy to any Node.js hosting platform that supports Next.js.
+
+---
+
+## 📄 License
+
+This project is private and proprietary.
+
+---
+
+## 🤝 Contributing
+
+This is an internal tool for NJM Tech. For questions or issues, contact the development team.
+
+---
+
+**Built with ❤️ for NJM Tech** | [Next.js](https://nextjs.org) + [HPCSA Verification](https://www.hpcsa.co.za)
