@@ -66,9 +66,13 @@ export default function Home() {
   const [batchResults, setBatchResults] = useState<BatchSearchResponse | null>(
     null,
   );
+  const [uploadedFileType, setUploadedFileType] = useState<
+    "csv" | "xlsx" | null
+  >(null);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null); // New state for storing the uploaded file
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  const handleExport = () => {
+  const handleExportActive = () => {
     if (!batchResults || batchResults.results.length === 0) return;
 
     // Separate results by status - simple filtering (case-insensitive)
@@ -165,10 +169,51 @@ export default function Home() {
 
     // Generate filename with timestamp
     const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, "-");
-    const filename = `HPCSA_Results_${timestamp}.xlsx`;
+    const filename = `HPCSA_Active_Results_${timestamp}.xlsx`;
 
     // Download file
     XLSX.writeFile(workbook, filename, { cellStyles: true });
+  };
+
+  const handleExportFullList = async () => {
+    if (!batchResults || batchResults.results.length === 0 || !uploadedFile)
+      return;
+    if (uploadedFileType !== "csv") return;
+
+    setLoading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", uploadedFile);
+
+      const response = await fetch("/api/batch-search/export-full", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to export full list.");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const timestamp = new Date()
+        .toISOString()
+        .slice(0, 19)
+        .replace(/:/g, "-");
+      a.download = `HPCSA_Full_List_${timestamp}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error exporting full list:", error);
+      // Optionally, show a toast or error message to the user
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -211,6 +256,15 @@ export default function Home() {
     if (acceptedFiles.length === 0) return;
 
     const file = acceptedFiles[0];
+    setUploadedFile(file); // Store the file in state
+    const fileExtension = file.name.split(".").pop()?.toLowerCase();
+    setUploadedFileType(
+      fileExtension === "csv"
+        ? "csv"
+        : fileExtension === "xlsx" || fileExtension === "xls"
+          ? "xlsx"
+          : null,
+    );
     setBatchLoading(true);
     setBatchResults(null);
     setUploadProgress(0);
@@ -559,14 +613,26 @@ export default function Home() {
                               processed
                             </CardDescription>
                           </div>
-                          <Button
-                            onClick={handleExport}
-                            variant="outline"
-                            className="dark:border-slate-700 dark:text-slate-300"
-                          >
-                            <Download className="w-4 h-4 mr-2" />
-                            Export to Excel
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button
+                              onClick={handleExportActive}
+                              variant="outline"
+                              className="dark:border-slate-700 dark:text-slate-300"
+                            >
+                              <Download className="w-4 h-4 mr-2" />
+                              Export Active
+                            </Button>
+                            {uploadedFileType === "csv" && (
+                              <Button
+                                onClick={handleExportFullList}
+                                variant="outline"
+                                className="dark:border-slate-700 dark:text-slate-300"
+                              >
+                                <Download className="w-4 h-4 mr-2" />
+                                Export Full List
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       </CardHeader>
                       <CardContent>
