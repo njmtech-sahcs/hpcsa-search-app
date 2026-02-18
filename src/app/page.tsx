@@ -85,22 +85,8 @@ export default function Home() {
       Found: result.found ? "Yes" : "No",
     }));
 
-    // Add active summary
+    // Add active summary at the bottom
     const activeSummary = [
-      {
-        "Registration Number": "SUMMARY",
-        "Full Name": "",
-        City: "",
-        Status: "",
-        Found: "",
-      },
-      {
-        "Registration Number": "Total Active",
-        "Full Name": activeResults.length,
-        City: "",
-        Status: "",
-        Found: "",
-      },
       {
         "Registration Number": "",
         "Full Name": "",
@@ -108,9 +94,16 @@ export default function Home() {
         Status: "",
         Found: "",
       },
+      {
+        "Registration Number": "TOTAL ACTIVE:",
+        "Full Name": activeResults.length,
+        City: "",
+        Status: "",
+        Found: "",
+      },
     ];
 
-    const activeFinalData = [...activeSummary, ...activeData];
+    const activeFinalData = [...activeData, ...activeSummary];
 
     // Prepare data for Not Found sheet
     const notFoundData = notFoundResults.map((result) => ({
@@ -121,22 +114,8 @@ export default function Home() {
       Found: result.found ? "Yes" : "No",
     }));
 
-    // Add not found summary
+    // Add not found summary at the bottom
     const notFoundSummary = [
-      {
-        "Registration Number": "SUMMARY",
-        "Full Name": "",
-        City: "",
-        Status: "",
-        Found: "",
-      },
-      {
-        "Registration Number": "Total Not Found/Inactive",
-        "Full Name": notFoundResults.length,
-        City: "",
-        Status: "",
-        Found: "",
-      },
       {
         "Registration Number": "",
         "Full Name": "",
@@ -144,9 +123,16 @@ export default function Home() {
         Status: "",
         Found: "",
       },
+      {
+        "Registration Number": "TOTAL NOT FOUND/INACTIVE:",
+        "Full Name": notFoundResults.length,
+        City: "",
+        Status: "",
+        Found: "",
+      },
     ];
 
-    const notFoundFinalData = [...notFoundSummary, ...notFoundData];
+    const notFoundFinalData = [...notFoundData, ...notFoundSummary];
 
     // Create workbook with multiple sheets
     const workbook = XLSX.utils.book_new();
@@ -285,6 +271,7 @@ export default function Home() {
         ".xlsx",
       ],
       "application/vnd.ms-excel": [".xls"],
+      "text/csv": [".csv"],
     },
     maxFiles: 1,
     disabled: batchLoading,
@@ -436,11 +423,12 @@ export default function Home() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 dark:text-slate-50">
                   <Upload className="w-5 h-5" />
-                  Upload Excel File
+                  Upload File
                 </CardTitle>
                 <CardDescription className="dark:text-slate-400">
-                  Upload an Excel file with a &quot;Registration&quot; column to
-                  batch check statuses
+                  Upload an Excel or CSV file to batch check registration
+                  statuses. CSV files should have &quot;Attended&quot; and
+                  &quot;Professional council number&quot; columns
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -461,10 +449,11 @@ export default function Home() {
                   ) : (
                     <>
                       <p className="text-slate-700 font-medium">
-                        Drag & drop an Excel file here, or click to select
+                        Drag & drop an Excel or CSV file here, or click to
+                        select
                       </p>
                       <p className="text-slate-500 text-sm mt-2">
-                        Supports .xlsx and .xls files
+                        Supports .xlsx, .xls, and .csv files
                       </p>
                     </>
                   )}

@@ -1,100 +1,44 @@
+/**
+ * Single Search API Route
+ * Uses service layer for separation of concerns
+ * Single Responsibility: Only handles HTTP request/response
+ * Dependency Inversion: Uses service container for all dependencies
+ */
+
 import { NextResponse } from "next/server";
+import { getServiceContainer, HPCSARecord } from "@/lib/services";
 
-export interface HPCSAResult {
-  name: string;
-  registration: string;
-  city: string;
-  status: string;
+export interface HPCSAResult extends HPCSARecord {}
+
+export interface SearchResponse {
+  results: HPCSAResult[];
+  message: string | null;
+  error?: string;
 }
 
-interface HPCSAApiResponse {
-  data: any[][];
-  headers: any[];
-  error: string | null;
-}
-
-const HPCSA_API_URL =
-  process.env.HPCSA_API_URL ||
-  "https://hpcsaonline.custhelp.com/cc/ReportController/getDataFromRnow";
-const REQUEST_TIMEOUT_MS = parseInt(
-  process.env.REQUEST_TIMEOUT_MS || "10000",
-  10
-);
-const MAX_RETRIES = parseInt(process.env.MAX_RETRIES || "3", 10);
-
-async function searchRegistration(
-  registrationNumber: string,
-  retryCount = 0
-): Promise<HPCSAResult[]> {
+/**
+ * Handle single search POST request
+ */
+export async function POST(request: Request): Promise<NextResponse> {
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    const { registrationNumber } = await request.json();
 
-    const response = await fetch(HPCSA_API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: `regNumber=${encodeURIComponent(registrationNumber)}`,
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      throw new Error(`API returned ${response.status}`);
-    }
-
-    const result: HPCSAApiResponse = await response.json();
-
-    if (result.error) {
-      throw new Error(result.error);
-    }
-
-    if (!result.data || result.data.length === 0) {
-      return [];
-    }
-
-    // Parse the results
-    // Data columns: 0:Title, 1:Surname, 2:Fullname, 3:Registration, 4:City, 5:PostalCode, 6:Category, 7:Status
-    return result.data.map((row) => ({
-      name: `${row[0] || ""} ${row[1] || ""} ${row[2] || ""}`.trim(),
-      registration: row[3] || registrationNumber,
-      city: row[4] || "",
-      status: row[7] || "",
-    }));
-  } catch (error: any) {
-    if (
-      (error.message?.includes("abort") || error.message?.includes("timeout")) &&
-      retryCount < MAX_RETRIES
-    ) {
-      console.log(
-        `Retry ${retryCount + 1}/${MAX_RETRIES} for ${registrationNumber}`
+    // Validation: Check registration number exists
+    if (!registrationNumber) {
+      return NextResponse.json(
+        { error: "Registration number is required" },
+        { status: 400 },
       );
-      await new Promise((resolve) =>
-        setTimeout(resolve, 1000 * (retryCount + 1))
-      );
-      return searchRegistration(registrationNumber, retryCount + 1);
     }
 
-    console.error(`Error searching ${registrationNumber}:`, error.message);
-    return [];
-  }
-}
+    // Get service from container (Dependency Injection via container)
+    const container = getServiceContainer();
+    const hpcsaService = container.getHPCSAService();
 
-export async function POST(request: Request) {
-  const { registrationNumber } = await request.json();
-
-  if (!registrationNumber) {
-    return NextResponse.json(
-      { error: "Registration number is required" },
-      { status: 400 }
-    );
-  }
-
-  try {
     console.log(`🔍 Searching for: ${registrationNumber}`);
-    const results = await searchRegistration(registrationNumber);
+
+    // Search using service
+    const results = await hpcsaService.searchSingle(registrationNumber);
 
     if (results.length === 0) {
       return NextResponse.json({
@@ -104,12 +48,19 @@ export async function POST(request: Request) {
     }
 
     console.log(`✅ Found ${results.length} record(s)`);
-    return NextResponse.json({ results, message: null });
+
+    return NextResponse.json({
+      results,
+      message: null,
+    });
   } catch (error) {
     console.error("Error during HPCSA search:", error);
     return NextResponse.json(
-      { error: "Failed to search HPCSA registration", details: String(error) },
-      { status: 500 }
+      {
+        error: "Failed to search HPCSA registration",
+        details: error instanceof Error ? error.message : String(error),
+      },
+      { status: 500 },
     );
   }
 }
